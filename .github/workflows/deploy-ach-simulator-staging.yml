@@ -1,0 +1,92 @@
+name: Deploy ACH Simulator to Cloud Run Staging
+
+on:
+  push:
+    branches:
+      - staging # Trigger on pushes to the staging branch
+
+env:
+  # Konfigurazzjoni tal-App/Servizz (tinġibed mis-secrets ta' GitHub)
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  PROJECT_NUMBER: ${{ secrets.GCP_PROJECT_NUMBER }}
+  REGION: ${{ secrets.GCP_REGION }}
+  SERVICE_NAME: unityfund-dev # Ħalli dan bħala valur statiku peress li huwa l-isem tas-servizz
+  IMAGE_NAME: ach-simulator
+  REPO_NAME: containers # Uża l-isem tar-repożitorju tal-Artifact Registry tiegħek
+  IMAGE_TAG: staging-${{ github.sha }} # Uża SHA għal tag uniku u mhux ambigwu
+  ACTIONS_STEP_DEBUG: true # Żid dan għal logging aktar dettaljat meta jkun meħtieġ
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # Issettja l-permissions meħtieġa għal Workload Identity Federation
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Meħtieġa għall-google-github-actions/auth
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Konfigurazzjoni tal-Buildx u l-Caching tad-Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      # 2. Authenticate to Google Cloud bl-użu ta' Workload Identity
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          # Il-Workload Identity Provider huwa statiku u jiddependi mill-PROJECT_NUMBER
+          workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          # Is-Service Account CI/CD li għandu l-permessi ta' deployment
+          service_account: github-ci@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
+      # 3. Installa l-Google Cloud SDK biex tkun tista' tuża l-kmandi gcloud
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 4. Ikkonfigura Docker għall-Artifact Registry
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      # 5. Ibni u Imbotta l-Immaġni (Uża l-cache tal-layer)
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          # Ippermetti l-Caching bejn il-Builds
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        
+      # 6. Skjerament lill-Cloud Run (uża t-tag uniku (SHA) maħluq)
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          flags: |
+            --platform managed
+            --port 3000
+            --set-env-vars=NODE_ENV=staging
+            # Iġbed is-sigrieti b'mod sikur minn Secret Manager
+            --update-secrets=FIREBASE_CONFIG_JSON=FIREBASE_CREDENTIALS:latest,APP_ID=APP_ID:latest
+            --min-instances 0
+
+      # 7. Verifika tat-Test tad-Duħħan (Smoke Test Verification)
+      - name: Smoke Test Verification
+        run: |
+          echo "Getting live URL for ${{ env.SERVICE_NAME }}"
+          # Iġbed l-URL tas-servizz l-aktar reċenti
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --format 'value(status.url)')
+            
+          echo "Pinging health endpoint: $URL/health"
+          # curl -fsSL: Fail silently, show error, follow redirects. If the response is not 2xx, the step fails.
+          curl -fsSL "$URL/health"
+          echo "Smoke test passed. Service is healthy."
