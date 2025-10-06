@@ -1,5 +1,7 @@
 # Treasury Policy Security Posture Brief
 
+This brief outlines the treasury policy's security posture, focusing on the configured hot wallet exposure, confirmation targets, and Base L2 operating context.
+
 ## Configuration Snapshot
 - **Manifest Hash:** `98b9cf34a9ad72d71a52ef5070a021c54e5b63704e8a9325a9f87a2d613bcac0`
 - **Alpha Hash:** `98b9cf34a9ad72d71a52ef5070a021c54e5b63704e8a9325a9f87a2d613bcac0`
@@ -17,9 +19,9 @@
 - **Layer-2 Context:** Base network finality assumptions
 
 ## Strengths
-- A 2-of-3 Safe multisig establishes resilient governance and limits the impact of individual key compromise on high-value transactions.
-- Limiting the hot wallet exposure to 20% preserves day-to-day liquidity for fees, market making, and routine payouts while reducing the blast radius of custodial breaches.
-- Requiring six Base L2 confirmations strikes a balance between operational throughput and settlement assurance, significantly lowering reorganization risk for inbound flows.
+- The 2-of-3 Safe multisig provides robust governance and mitigates any single point of failure for large disbursements.
+- Limiting hot wallet exposure to 20% maintains operational agility for gas, smaller payments, and DEX liquidity while constraining potential loss.
+- Requiring six Base L2 confirmations balances transaction speed with finality guarantees, reducing reorganization risk for inbound flows.
 
 ## Observations
 - The alignment of identical manifest, alpha, beta, and gamma hashes simplifies provenance tracking and highlights process consistency across deployment stages.

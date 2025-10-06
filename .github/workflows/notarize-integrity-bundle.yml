@@ -1,0 +1,125 @@
+name: Notarize Integrity Bundle
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  notarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip jq xxd file
+
+      - name: Install OpenTimestamps client
+        run: |
+          pip3 install --user opentimestamps-client
+
+      - name: Install Foundry (cast)
+        shell: bash
+        run: |
+          curl -L https://foundry.paradigm.xyz | bash
+          echo 'source ~/.foundry/bin/foundryup' >> $GITHUB_ENV
+          source ~/.foundry/bin/foundryup
+          echo "$HOME/.foundry/bin" >> $GITHUB_PATH
+          cast --version
+
+      - name: Generate manifest (hashes, merkle, bundle hash)
+        run: |
+          chmod +x ./gen-manifest.sh
+          ./gen-manifest.sh
+          echo "BUNDLE_HASH=$(sha256sum manifest.txt | awk '{print $1}')" >> $GITHUB_ENV
+
+      - name: Anchor to Bitcoin via OpenTimestamps
+        env:
+          PATH: ${{ env.PATH }}:$HOME/.local/bin
+        run: |
+          ~/.local/bin/ots stamp manifest.txt
+          # Upgrade proof to get a confirmed Bitcoin anchor (may confirm later)
+          ~/.local/bin/ots upgrade manifest.txt.ots || true
+          ~/.local/bin/ots verify manifest.txt || true
+          echo "OTS_PROOF=manifest.txt.ots" >> $GITHUB_ENV
+
+      - name: Anchor to Ethereum (Sepolia) with cast
+        env:
+          RPC_URL: ${{ secrets.SEPOLIA_RPC }}
+          PK: ${{ secrets.ETH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$RPC_URL" ] || [ -z "$PK" ]; then
+            echo "Missing RPC or Private Key secrets. Please set SEPOLIA_RPC and ETH_PRIVATE_KEY."
+            exit 1
+          fi
+          export BUNDLE_HASH=${{ env.BUNDLE_HASH }}
+          # Send a 0-value tx with bundle hash in calldata
+          SEND_OUTPUT=$(cast send --rpc-url "$RPC_URL" --private-key "$PK" --value 0 --data "0x${BUNDLE_HASH}" --legacy || true)
+          echo "$SEND_OUTPUT"
+          # Try to parse tx hash from output
+          ETH_TXID=$(echo "$SEND_OUTPUT" | grep -Eo '0x[a-fA-F0-9]{64}' | head -n1)
+          if [ -z "$ETH_TXID" ]; then
+            echo "Failed to parse Ethereum TxID from cast output."
+            exit 1
+          fi
+          echo "ETH_TXID=$ETH_TXID" >> $GITHUB_ENV
+          # Wait for receipt and capture block number
+          for i in $(seq 1 30); do
+            RECEIPT=$(cast receipt "$ETH_TXID" --rpc-url "$RPC_URL" --json || true)
+            BN=$(echo "$RECEIPT" | jq -r '.blockNumber // empty' | sed 's/^0x//')
+            if [ -n "$BN" ]; then
+              # Convert hex to decimal if needed
+              BN_DEC=$((16#$BN))
+              echo "ETH_BLOCK=$BN_DEC" >> $GITHUB_ENV
+              break
+            fi
+            echo "Waiting for confirmation ($i)..."
+            sleep 6
+          done
+
+      - name: Update manifest with anchors
+        run: |
+          python3 scripts/update-manifest.py \
+            --manifest manifest.txt \
+            --bundle-hash "${{ env.BUNDLE_HASH }}" \
+            --ots-proof "${{ env.OTS_PROOF }}" \
+            --eth-tx "${{ env.ETH_TXID }}" \
+            --eth-block "${{ env.ETH_BLOCK || '' }}"
+
+      - name: Verify anchors
+        env:
+          RPC_URL: ${{ secrets.SEPOLIA_RPC }}
+          PATH: ${{ env.PATH }}:$HOME/.local/bin
+        run: |
+          ~/.local/bin/ots verify manifest.txt || true
+          if [ -n "${{ env.ETH_TXID }}" ]; then
+            cast tx "${{ env.ETH_TXID }}" --rpc-url "$RPC_URL"
+          fi
+
+      - name: Commit notarized artifacts
+        run: |
+          git config user.name "UnityFund CI"
+          git config user.email "ci@unityfund.io"
+          git add manifest.txt manifest.sha256 README-Notarization.txt || true
+          git commit -m "Notarize: update manifest with Bitcoin OTS + Ethereum anchors" || echo "No changes to commit"
+          git push
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: notarized-bundle
+          path: |
+            manifest.txt
+            manifest.sha256
+            README-Notarization.txt
+            manifest.txt.ots
