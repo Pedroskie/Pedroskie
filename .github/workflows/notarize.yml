@@ -1,0 +1,91 @@
+name: Notarize Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  notarize:
+    runs-on: ubuntu-latest
+    env:
+      GIT_AUTHOR_NAME: UnityFund CI
+      GIT_AUTHOR_EMAIL: ci@unityfund.io
+      GIT_COMMITTER_NAME: UnityFund CI
+      GIT_COMMITTER_EMAIL: ci@unityfund.io
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip xxd
+          pip install --quiet opentimestamps-client qrcode[pil]
+          curl -L https://foundry.paradigm.xyz | bash
+          echo "$HOME/.foundry/bin" >> "$GITHUB_PATH"
+
+      - name: Generate manifest
+        run: ./gen-manifest.sh
+
+      - name: Bitcoin timestamp
+        run: |
+          ots stamp manifest.txt
+          ots upgrade manifest.txt.ots || true
+
+      - name: Ethereum anchor
+        env:
+          RPC_URL: ${{ secrets.SEPOLIA_RPC }}
+          PK: ${{ secrets.ETH_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$RPC_URL" || -z "$PK" ]]; then
+            echo "Ethereum secrets are not configured; skipping anchor."
+            exit 0
+          fi
+          BUNDLE_HASH=$(sha256sum manifest.txt | awk '{print $1}')
+          TX_JSON=$(cast send --rpc-url "$RPC_URL" --private-key "$PK" \
+            --value 0 --data "0x${BUNDLE_HASH}")
+          echo "$TX_JSON" > cast-output.json
+          TX_ID=$(echo "$TX_JSON" | grep -o '0x[0-9a-fA-F]*' | head -n1)
+          echo "$TX_ID" > eth_txid.txt
+
+      - name: Update manifest and log
+        run: |
+          OTS_PATH="$(pwd)/manifest.txt.ots"
+          if [[ -f "$OTS_PATH" ]]; then
+            sed -i "s/{{ots_proof}}/${OTS_PATH//\//\/}/" manifest.txt
+          fi
+          if [[ -f eth_txid.txt ]]; then
+            TX_ID=$(cat eth_txid.txt)
+            sed -i "s/{{eth_tx}}/${TX_ID}/" manifest.txt
+            echo "| $(date -u +"%Y-%m-%dT%H:%M:%SZ") | $(git rev-parse --short HEAD) | ${OTS_PATH} | ${TX_ID} |" >> README-Notarization.txt
+          else
+            sed -i "s/{{eth_tx}}/N\\/A/" manifest.txt
+            echo "| $(date -u +"%Y-%m-%dT%H:%M:%SZ") | $(git rev-parse --short HEAD) | ${OTS_PATH} | N\\/A |" >> README-Notarization.txt
+          fi
+
+      - name: Verify proofs
+        if: ${{ secrets.SEPOLIA_RPC != '' && secrets.ETH_PRIVATE_KEY != '' }}
+        env:
+          RPC_URL: ${{ secrets.SEPOLIA_RPC }}
+        run: |
+          ots verify manifest.txt || true
+          if [[ -f eth_txid.txt ]]; then
+            cast tx $(cat eth_txid.txt) --rpc-url "$RPC_URL"
+          fi
+
+      - name: Commit notarization artifacts
+        run: |
+          git status
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add manifest.txt manifest.txt.ots README-Notarization.txt cast-output.json eth_txid.txt || true
+            git commit -m "Auto-notarized manifest with dual-chain proof"
+            git push
+          else
+            echo "No changes to commit"
+          fi

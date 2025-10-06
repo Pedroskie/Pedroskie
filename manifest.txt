@@ -1,0 +1,11 @@
+UnityFund Integrity Manifest
+Generated: 2025-10-05T22:53:49Z
+Git Commit: 6214bd1e6725ca2bdeb4ee857769a612875ca81a
+
+Artifacts:
+  - README.md sha256: f5f31b59326666df1a67c554bae8ca49358fd0bff3aa1900431f2b8e29bde2ff
+  - docs/treasury-policy.md sha256: 7e8efbf2dfad2e1fa89c2056b110ebba65f7b0fd40810b40e70e35d5a2110975
+
+Anchors:
+  - Bitcoin OTS: {{ots_proof}}
+  - Ethereum Tx: {{eth_tx}}
