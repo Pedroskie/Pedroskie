@@ -1,0 +1,21 @@
+{
+  "ledger_version": "1.4.1",
+  "epoch": "2025-10-11T22:45:00Z",
+  "entry_id": "vlink_20251011_16A34A",
+  "founder": "Pedro L. Rentas Torres",
+  "entity": "UnityFund Holdings",
+  "bundle_reference": "Integrity_Certificate_v1.pdf",
+  "snapshot_reference": "flowledger_snapshot.json",
+  "sha256_snapshot": "57dbbd18872e9c4e0b6e28e7e9b3ff40e468be01db8edc2b4708477a6e184a13",
+  "status": "ready_for_anchoring",
+  "anchors": {
+    "bitcoin_txid": "pending",
+    "ethereum_txid": "pending"
+  },
+  "signatories": [
+    "Pedro L. Rentas Torres — Founder & Visionary, VeriLink Global",
+    "UnityFund Holdings — Custodian of the Integrity Ledger"
+  ],
+  "notes": "This ledger entry marks VeriLink’s global investment readiness milestone and prepares the certificate for dual-chain anchoring.",
+  "tagline": "Proof over Promises — Integrity as Infrastructure"
+}
