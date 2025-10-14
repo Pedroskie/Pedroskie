@@ -1,0 +1,49 @@
+name: VeriLink Integrity Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema
+
+      - name: Anchor sample records
+        run: |
+          python verilink_v1.1/verilink-cli.py anchor \
+            --records verilink_v1.1/records.json \
+            --output verilink_v1.1/MANIFEST.json
+
+      - name: Verify manifest digest
+        run: |
+          python verilink_v1.1/verilink-cli.py verify \
+            --manifest verilink_v1.1/MANIFEST.json
+
+      - name: Chain to previous digest
+        env:
+          PREVIOUS_DIGEST: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        run: |
+          python verilink_v1.1/verilink-cli.py chain \
+            --manifest verilink_v1.1/MANIFEST.json \
+            --previous "$PREVIOUS_DIGEST"
+
+      - name: Re-verify continuity
+        env:
+          PREVIOUS_DIGEST: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        run: |
+          python verilink_v1.1/verilink-cli.py verify \
+            --manifest verilink_v1.1/MANIFEST.json \
+            --previous "$PREVIOUS_DIGEST"

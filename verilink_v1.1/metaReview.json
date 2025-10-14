@@ -1,0 +1,21 @@
+{
+  "manifest_digest": "${MANIFEST_DIGEST}",
+  "epoch": "2024-06-01T00:00:00Z",
+  "reviews": [
+    {
+      "reviewer": "UnityFund Release Ops",
+      "type": "human",
+      "status": "approved",
+      "signed_at": "2024-06-01T12:00:00Z",
+      "notes": "Verified ots stamp and ledger digest." 
+    },
+    {
+      "reviewer": "VeriLink Integrity Bot",
+      "type": "automation",
+      "status": "approved",
+      "signed_at": "2024-06-01T12:05:00Z",
+      "notes": "jsonschema v2 -> ok; digest continuity intact."
+    }
+  ],
+  "attestation_uri": "s3://unityfund-audits/verilink/v1.1/${MANIFEST_DIGEST}/metaReview.json"
+}

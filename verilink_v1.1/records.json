@@ -1,0 +1,24 @@
+{
+  "run_id": "verilink-v1.1-sample",
+  "generated_at": "2024-06-01T11:45:00Z",
+  "records": [
+    {
+      "record_id": "unityfund-flowledger-epoch-2024-06-01",
+      "source": {
+        "type": "flow-ledger",
+        "uri": "https://ledger.unityfund.example/epochs/2024-06-01.json"
+      },
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "notes": "FlowLedger v8 export for anchor queue"
+    },
+    {
+      "record_id": "unityfund-integrity-ots-proof",
+      "source": {
+        "type": "ots-proof",
+        "uri": "s3://unityfund-ots/unityfund_integrity_engine_v1.1.ots"
+      },
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "notes": "OTS proof for MANIFEST.json"
+    }
+  ]
+}
