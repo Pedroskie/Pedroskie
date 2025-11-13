@@ -20,8 +20,8 @@ This brief outlines the treasury policy's security posture, considering the spec
 
 ## Strengths
 - The 2-of-3 Safe multisig provides robust governance, mitigating single points of failure for major disbursements.
-- The 20% hot wallet cap offers operational agility for gas, smaller payments, and DEX liquidity while constraining potential loss.
-- Six Base L2 block confirmations balance transaction speed with a reasonable assurance of finality, reducing reorganization risks for incoming funds.
+- The 20% hot wallet cap offers operational agility for gas, smaller payments, and DEX liquidity.
+- Six Base L2 block confirmations balance transaction speed with a reasonable assurance of finality, reducing reorg risks for incoming funds.
 
 ## Observations
 - The alignment of identical manifest, alpha, beta, and gamma hashes simplifies provenance tracking and highlights process consistency across deployment stages.
