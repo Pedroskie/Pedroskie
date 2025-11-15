@@ -30,6 +30,32 @@ Auditors and users can independently verify the provenance of any release (vX.Y.
 
 If the OTS verification is successful, the release is 💚 STILL VERIFIED and guaranteed to be the code released at that specific, provable time.
 
+### VeriLink Integrity Release v1.0.1
+
+The final step to produce the VeriLink Integrity Release v1.0.1 bundle is to archive the verified artifacts into a single immutable package:
+
+```bash
+zip -r verilink-integrity-v1.0.1-release.zip verilink-integrity-v1.0.1-release/
+```
+
+**What this does**
+
+- `zip -r` creates a compressed archive recursively so every file and directory is captured.
+- `verilink-integrity-v1.0.1-release.zip` is the resulting release artifact.
+- `verilink-integrity-v1.0.1-release/` points to the directory that contains the verification bundle, micro-anchor data, and documentation.
+
+**Expected output**
+
+```
+  adding: verilink-integrity-v1.0.1-release/ (stored 0%)
+  adding: verilink-integrity-v1.0.1-release/verilink-integrity-verification-v1.0.1.zip (deflated 64%)
+  adding: verilink-integrity-v1.0.1-release/verilink-integrity-anchor-v1.0.1-sums.zip (deflated 58%)
+  adding: verilink-integrity-v1.0.1-release/flowledger_anchor_v8.jsonl (deflated 42%)
+  adding: verilink-integrity-v1.0.1-release/README_RELEASE.md (deflated 35%)
+```
+
+This creates `verilink-integrity-v1.0.1-release.zip`, capturing the complete chain from source, to artifact, to micro-anchor, to ledger, and finally to Bitcoin consensus—delivering an independently verifiable, cryptographically reproducible release bundle.
+
 <!---
 Pedroskie/Pedroskie is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 You can click the Preview link to take a look at your changes.
