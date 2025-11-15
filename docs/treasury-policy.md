@@ -23,6 +23,23 @@ This brief outlines the treasury policy's security posture, considering the spec
 - The 20% hot wallet cap offers operational agility for gas, smaller payments, and DEX liquidity while constraining potential loss.
 - Six Base L2 block confirmations balance transaction speed with a reasonable assurance of finality, reducing reorganization risks for incoming funds.
 
+## Risk Considerations
+- **Signer Coordination:** Multisig responsiveness depends on timely signer participation; maintaining redundant communication channels and on-call schedules keeps treasury operations responsive during incidents.
+- **Hot Wallet Drift:** Market volatility or automated payout routines can push balances above the 20% cap. Instrumentation that alerts on threshold breaches and enforces automated rebalancing back to cold storage limits exposure.
+- **Layer-2 Dependencies:** Base L2 inherits security from Ethereum mainnet but still introduces sequencer and bridge risk. Documented runbooks for sequencer downtime, exit procedures, and emergency withdrawal paths help contain disruptions.
+
+## Monitoring & Response Playbook
+The treasury desk should maintain a lightweight runbook that translates configuration targets into actionable monitoring tasks. The table below captures the minimum viable checks.
+
+| Control Focus | Check Cadence | Primary Metric | Automated Alert Threshold | Human Response |
+|---------------|---------------|----------------|---------------------------|----------------|
+| Multisig Health | Weekly | `safeTxStatus` for pending queue | Pending transactions older than 48h | Trigger signer ping protocol and update incident log |
+| Hot Wallet Cap | Daily | Hot wallet balance ÷ total treasury | ≥ 18% (warning) / ≥ 20% (critical) | Initiate rebalance transfer back to cold storage |
+| Confirmation Integrity | Per transfer | Base L2 block depth | < 6 confirmations after 15 minutes | Flag transaction for manual review before funds are reused |
+| Bridge/Sequencer Status | Continuous | Base status page heartbeat | Any reported outage or degraded service | Pause large transfers, evaluate bridge exit timelines |
+
+Embedding these checks into on-call rotations or treasury stand-ups ensures the policy is an active practice rather than a static document. Incident retrospectives should feed adjustments into the cap, confirmation depth, or signer roster if the monitoring uncovers systemic gaps.
+
 ## Observations
 - The alignment of identical manifest, alpha, beta, and gamma hashes simplifies provenance tracking and highlights process consistency across deployment stages.
 - Staged timestamps for validation, sealing, deployment, and verification demonstrate a disciplined release workflow that supports auditability.
