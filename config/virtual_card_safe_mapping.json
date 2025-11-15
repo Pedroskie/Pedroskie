@@ -1,0 +1,76 @@
+{
+  "Visa Virtual": {
+    "issuer": "Visa",
+    "program": "UnityFund Virtual Treasury",
+    "policy_reference": "docs/treasury-policy.md",
+    "safe": {
+      "address": "0x1234567890abcdef1234567890abcdef12345678",
+      "chain": "Base",
+      "chain_id": 8453,
+      "threshold": 2,
+      "owners": [
+        {
+          "name": "Treasury Lead",
+          "role": "Signer A",
+          "address": "0xA1b2C3d4E5f60718293aBcDeF4567890abCDef12"
+        },
+        {
+          "name": "COO",
+          "role": "Signer B",
+          "address": "0xB3c4D5e6F708192A3bCdEf40567890abCDef1234"
+        },
+        {
+          "name": "Risk Officer",
+          "role": "Signer C",
+          "address": "0xC5d6E7f8091A2b3C4dEf5607890aBcDef1234567"
+        }
+      ]
+    },
+    "treasury_controls": {
+      "hot_wallet_cap_percent": 20,
+      "min_confirmations": 6,
+      "l2_context": "Base"
+    },
+    "funding": {
+      "source": "UnityFund Multisig Safe",
+      "budget_accounting_tag": "virtual-cards"
+    }
+  },
+  "Mastercard Virtual": {
+    "issuer": "Mastercard",
+    "program": "UnityFund Virtual Treasury",
+    "policy_reference": "docs/treasury-policy.md",
+    "safe": {
+      "address": "0x9876543210fedcba9876543210fedcba98765432",
+      "chain": "Base",
+      "chain_id": 8453,
+      "threshold": 2,
+      "owners": [
+        {
+          "name": "Treasury Lead",
+          "role": "Signer A",
+          "address": "0xD1e2F3a4B5c60718293aBcDeF4567890abCDef98"
+        },
+        {
+          "name": "COO",
+          "role": "Signer B",
+          "address": "0xE3f4A5b6C708192A3bCdEf40567890abCDef9812"
+        },
+        {
+          "name": "Risk Officer",
+          "role": "Signer C",
+          "address": "0xF5a6B7c8091A2b3C4dEf5607890aBcDef9812345"
+        }
+      ]
+    },
+    "treasury_controls": {
+      "hot_wallet_cap_percent": 20,
+      "min_confirmations": 6,
+      "l2_context": "Base"
+    },
+    "funding": {
+      "source": "UnityFund Multisig Safe",
+      "budget_accounting_tag": "virtual-cards"
+    }
+  }
+}
