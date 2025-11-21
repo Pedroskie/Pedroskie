@@ -34,3 +34,15 @@ If the OTS verification is successful, the release is 💚 STILL VERIFIED and gu
 Pedroskie/Pedroskie is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 You can click the Preview link to take a look at your changes.
 --->
+
+## FlowMesh v2 (Technical Mode)
+
+A minimal heartbeat + prediction loop for the phone (sensor), Pi (orchestrator),
+and laptop (witness):
+
+- `python -m flowmesh.heartbeat <node>` emits a heartbeat snapshot into
+  `flowmesh/flowmesh_bus.json`.
+- `python -m flowmesh.predictor` runs forward-risk scoring across recent
+  snapshots to surface drift and failure signals.
+
+See `docs/flowmesh_v2.md` for the mesh bus schema and design notes.

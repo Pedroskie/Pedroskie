@@ -1,0 +1,40 @@
+{
+  "mesh_id": "flowmesh-v2",
+  "updated_at": null,
+  "nodes": {
+    "phone": {
+      "role": "sensor",
+      "heartbeat": null,
+      "status": "unknown",
+      "metrics": {},
+      "health_score": null,
+      "predicted_risk": null,
+      "history": []
+    },
+    "pi": {
+      "role": "orchestrator",
+      "heartbeat": null,
+      "status": "unknown",
+      "metrics": {},
+      "health_score": null,
+      "predicted_risk": null,
+      "history": []
+    },
+    "laptop": {
+      "role": "witness",
+      "heartbeat": null,
+      "status": "unknown",
+      "metrics": {},
+      "health_score": null,
+      "predicted_risk": null,
+      "history": []
+    }
+  },
+  "mesh_summary": {
+    "online": 0,
+    "degraded": 0,
+    "offline": 0,
+    "average_health": null,
+    "last_prediction": null
+  }
+}
