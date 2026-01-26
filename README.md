@@ -30,6 +30,10 @@ Auditors and users can independently verify the provenance of any release (vX.Y.
 
 If the OTS verification is successful, the release is 💚 STILL VERIFIED and guaranteed to be the code released at that specific, provable time.
 
+## Flow v3 Roadmap
+
+The latest concepts for evolving Flow into a multi-node, self-healing network guardian are captured in [`docs/flow-v3-roadmap.md`](docs/flow-v3-roadmap.md). It outlines the proposed Dual-Chain Guardian, hotspot auto-heal routines, Pi-hosted dashboard, FlowMesh heartbeat, and RF counterintelligence detector.
+
 <!---
 Pedroskie/Pedroskie is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 You can click the Preview link to take a look at your changes.
